@@ -10,6 +10,8 @@ import scipy.ndimage as ndimage
 import scipy.constants
 import csv
 import read_roi as rr
+import pickle
+from scipy import signal
 
 #if __name__ =='__main__':
  #   import read_roi as rr
@@ -22,14 +24,41 @@ def importCSV(cwd,filename):
     y=[]
     with open(cwd + r'{}.csv'.format(filename), newline='') as csvfile:
         file= csv.reader(csvfile, delimiter=',')
-    next(csvfile)
-    for row in file:
-        x.append(float(row[0]))
-        y.append(float(row[1]))  
+        next(csvfile)
+        for row in file:
+            x.append(float(row[0]))
+            y.append(float(row[1]))  
     return x,y
+
+
+def appendCSV(cwd,fileName,data):
+    with open(cwd + r'\{}.csv'.format(fileName), 'a', newline='') as f:
+        writer = csv.writer(f, lineterminator='\r')
+        writer.writerow(data)
+    return
+    
+
+def savePickes(cwd,fileName,variableName):
+    with open(cwd + '\\{}'.format(fileName), 'wb') as f:
+        pickle.dump(variableName, f) 
+    return
+
+
+def loadPickles(cwd,fileName):
+   with open(cwd + '\\{}'.format(fileName), 'rb') as f:
+        variableName = pickle.load(f)
+   return variableName
+    
+
+def countToPhotons(count):
+    return count*100*2**16/30000
+    
+
 
 def two_photon_res(wl,NA):
     return (0.383*wl)/NA**0.91
+
+
 
 def power_to_photon_flux(wl,power,NA = 0.8):
     spot_area = 2*np.pi*two_photon_res(wl,NA)**2
@@ -37,9 +66,13 @@ def power_to_photon_flux(wl,power,NA = 0.8):
     flux_density = photon_flux/spot_area
     return flux_density
 
+
+
 def norm(array):
     return [float(i)/max(array) for i in array]
     #(array - np.min(array))/(np.max(array) - np.min(array))
+    
+    
     
 def read_roi_file(roi_filepath,im_dims = None):
     with open(roi_filepath,'rb') as f:
@@ -55,3 +88,6 @@ def read_roi_file(roi_filepath,im_dims = None):
         return roi,filled
     else:
         return roi
+    
+def detrend(y):    
+    return signal.detrend(y)    
