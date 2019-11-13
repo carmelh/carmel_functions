@@ -67,11 +67,18 @@ def power_to_photon_flux(wl,power,NA = 0.8):
     return flux_density
 
 
-
 def norm(array):
     return [float(i)/max(array) for i in array]
     #(array - np.min(array))/(np.max(array) - np.min(array))
+
     
+
+def get_stats(data):
+    med= np.median(data)
+    tenth=np.percentile(data,10)
+    ninieth=np.percentile(data,90)
+    
+    return med, tenth, ninieth   
     
     
 def read_roi_file(roi_filepath,im_dims = None):
