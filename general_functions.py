@@ -12,17 +12,32 @@ import csv
 import read_roi as rr
 import pickle
 from scipy import signal
+from scipy.signal import find_peaks, peak_widths
+from pathlib import Path
+from scipy.interpolate import UnivariateSpline
 
 #if __name__ =='__main__':
  #   import read_roi as rr
 #else:
  #   from . import read_roi as rr
 
+from time import perf_counter
+
+#start = perf_counter()
+#do thing
+#end = perf_counter()
+#execution_time = (end - start)
+#print(execution_time)
+
+
+
+def to_outline(roi):
+    return np.logical_xor(ndimage.morphology.binary_dilation(roi),roi)
 
 def importCSV(cwd,filename):
     x=[]
     y=[]
-    with open(cwd + r'{}.csv'.format(filename), newline='') as csvfile:
+    with open(cwd + r'\\{}.csv'.format(filename), newline='') as csvfile:
         file= csv.reader(csvfile, delimiter=',')
         next(csvfile)
         for row in file:
@@ -50,6 +65,13 @@ def loadPickles(cwd,fileName):
    return variableName
     
 
+def makeFolder(path):
+    path = Path(path)
+
+    if not path.is_dir():
+        path.mkdir()
+    return
+
 def countToPhotons(count):
     return count*100*2**16/30000
     
@@ -68,10 +90,24 @@ def power_to_photon_flux(wl,power,NA = 0.8):
 
 
 def norm(array):
-    return [float(i)/max(array) for i in array]
+    return [float(i)/np.max(array) for i in array]
     #(array - np.min(array))/(np.max(array) - np.min(array))
 
-    
+
+def FWHM(x):
+    peaks, _ = find_peaks(x, height=0)
+    results_half = peak_widths(x, peaks, rel_height=0.5)
+    return peaks, results_half
+
+def FWHM2(x,y):
+    spline = UnivariateSpline(x, y-np.max(y)/2, s=0)
+    r1, r2 = spline.roots() # find the roots
+    FWHM=r2-r1
+    return FWHM
+
+def get_time(ts,processedTrace):
+    return np.arange(0, ts*len(processedTrace), ts)
+
 
 def get_stats(data):
     med= np.median(data)
